@@ -228,7 +228,7 @@ const StartPage = ({ isLeaving }) => (
           <span className="loader-orbit" aria-hidden="true">
             <span />
           </span>
-          <strong>تهيئة الدعوة الرسمية</strong>
+          <strong>تهيئة </strong>
           <small>سيتم فتح الدعوة خلال لحظات</small>
         </div>
       </div>
