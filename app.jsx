@@ -11,10 +11,10 @@ const EVENT = {
   hospitalEn: "Al Wathiq Hospital",
   titleAr: "المؤتمر الطبي السنوي",
   titleEn: "Annual Medical Conference 2026",
-  edition: "المؤتمر السنوي الأول العلمي في مستشفانا",
+  edition: "المؤتمر السنوي الأول بالتعاون مع شركة اسينو",
   inviteHeadline: "دعوة",
   inviteText:
-    "يسر إدارة مستشفى الواثق الأهلي أن تتشرف بدعوتكم لحضور مؤتمرها السنوي الأول العلمي في مستشفانا",
+    "يسر إدارة مستشفى الواثق الأهلي دعوتكم لحضور مؤتمرها السنوي الأول بالتعاون مع شركة اسينو",
   tagline: "نبض الرعاية... رؤية لصحة المستقبل",
   day: "الجمعة",
   date: "12 / 6 / 2026",
@@ -292,7 +292,7 @@ const InvitationSection = React.forwardRef((props, ref) => (
 
     <div className="invitation-layout">
       <figure className="official-poster">
-        <img src={ASSETS.details} alt="تفاصيل دعوة مستشفى الواثق الأهلي للمؤتمر العلمي السنوي الأول" />
+        <img src={ASSETS.details} alt="تفاصيل دعوة مستشفى الواثق الأهلي للمؤتمر السنوي الأول بالتعاون مع شركة اسينو" />
       </figure>
 
       <div className="invitation-copy">
