@@ -3,6 +3,7 @@ const { useCallback, useEffect, useMemo, useState } = React;
 const ASSETS = {
   cover: "assets/conference-cover.png",
   details: "assets/invitation-details.png",
+  facade: "assets/hospital-facade-real.png",
 };
 
 const EVENT = {
@@ -97,6 +98,13 @@ const icons = {
       <path d="M15 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2" stroke="currentColor" strokeWidth="1.7" />
     </Icon>
   ),
+  download: (
+    <Icon>
+      <path d="M12 3v11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M8 10l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5 17.5v1.2A2.3 2.3 0 0 0 7.3 21h9.4a2.3 2.3 0 0 0 2.3-2.3v-1.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </Icon>
+  ),
   pulse: (
     <Icon>
       <path d="M2.7 12h4.1l1.4-5.2 3.1 10.3 2.4-7.1 1.9 4.1h5.7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -165,7 +173,7 @@ const EkgLine = ({ className = "" }) => (
   </svg>
 );
 
-const FloatingParticles = ({ count = 28 }) => {
+const FloatingParticles = ({ count = 24 }) => {
   const particles = useMemo(
     () =>
       Array.from({ length: count }, (_, index) => ({
@@ -198,26 +206,35 @@ const FloatingParticles = ({ count = 28 }) => {
 
 const StartPage = ({ isLeaving }) => (
   <section className={`hero start-page ${isLeaving ? "is-leaving" : ""}`} id="top">
-    <img className="hero-blur" src={ASSETS.cover} alt="" aria-hidden="true" />
+    <img className="hero-facade" src={ASSETS.facade} alt="" aria-hidden="true" />
+    <div className="hero-facade-shade" aria-hidden="true" />
     <MedicalNetwork />
-    <FloatingParticles />
+    <FloatingParticles count={18} />
     <div className="transition-gate" aria-hidden="true">
       <span className="gate-line top" />
       <span className="gate-line bottom" />
       <span className="gate-flash" />
     </div>
 
-    <div className="hero-shell">
-      <div className="hero-image-stage">
-        <img className="hero-poster" src={ASSETS.cover} alt="دعوة المؤتمر الطبي السنوي 2026 لمستشفى الواثق الأهلي" />
-        <div className="start-poster-mask" aria-hidden="true">
-          <span />
+    <div className="hero-shell facade-shell">
+      <div className="hero-content-grid">
+        <div className="hero-brand">
+          <span className="hero-kicker">{EVENT.inviteHeadline} رسمية</span>
+          <h1>{EVENT.hospitalAr}</h1>
+          <p>{EVENT.titleAr}</p>
+          <strong>{EVENT.titleEn}</strong>
         </div>
-        <div className="poster-sheen" aria-hidden="true" />
+
+        <div className="hero-info-panel" aria-label="تفاصيل المؤتمر">
+          <span>موعد المؤتمر</span>
+          <strong>{EVENT.day} {EVENT.date}</strong>
+          <small>{EVENT.time}</small>
+          <i aria-hidden="true" />
+          <p>{EVENT.address}</p>
+        </div>
       </div>
 
       <div className="hero-copy">
-        <h1 className="visually-hidden">{EVENT.hospitalAr} - {EVENT.titleAr}</h1>
         <div className="hero-date-chip">
           <span>{EVENT.day}</span>
           <strong>{EVENT.date}</strong>
@@ -228,12 +245,10 @@ const StartPage = ({ isLeaving }) => (
           <span className="loader-orbit" aria-hidden="true">
             <span />
           </span>
-          <strong>تهيئة </strong>
-          <small>سيتم فتح الدعوة خلال لحظات</small>
+          <strong>{EVENT.tagline}</strong>
         </div>
       </div>
     </div>
-
   </section>
 );
 
@@ -316,21 +331,6 @@ const ScheduleSection = () => (
     </div>
 
     <Countdown />
-
-    <div className="timeline">
-      {[
-        ["الاستقبال", "تهيئة الحضور والضيوف"],
-        ["الافتتاح", "كلمة إدارة المستشفى"],
-        ["الجلسات العلمية", "محاور طبية ورؤى مستقبلية"],
-        ["الختام", "تواصل وتكريم الحضور"],
-      ].map(([title, text], index) => (
-        <div className="timeline-item" key={title}>
-          <span>{String(index + 1).padStart(2, "0")}</span>
-          <strong>{title}</strong>
-          <p>{text}</p>
-        </div>
-      ))}
-    </div>
   </section>
 );
 
@@ -365,6 +365,243 @@ const LocationSection = () => (
     </div>
   </section>
 );
+
+const loadCanvasImage = (src) =>
+  new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+
+const drawCoverImage = (ctx, image, x, y, width, height) => {
+  const scale = Math.max(width / image.width, height / image.height);
+  const sw = width / scale;
+  const sh = height / scale;
+  const sx = (image.width - sw) / 2;
+  const sy = (image.height - sh) / 2;
+  ctx.drawImage(image, sx, sy, sw, sh, x, y, width, height);
+};
+
+const roundedRect = (ctx, x, y, width, height, radius) => {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+};
+
+const wrapCanvasText = (ctx, text, x, y, maxWidth, lineHeight, maxLines = 4) => {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = "";
+
+  words.forEach((word) => {
+    const nextLine = line ? `${line} ${word}` : word;
+    if (ctx.measureText(nextLine).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = nextLine;
+    }
+  });
+
+  if (line) lines.push(line);
+
+  lines.slice(0, maxLines).forEach((item, index) => {
+    ctx.fillText(item, x, y + index * lineHeight);
+  });
+
+  return y + Math.min(lines.length, maxLines) * lineHeight;
+};
+
+const saveCanvasAsPng = (canvas, filename) =>
+  new Promise((resolve, reject) => {
+    try {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error("Canvas export failed"));
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 800);
+        resolve();
+      }, "image/png");
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+const downloadFallbackPoster = () => {
+  const link = document.createElement("a");
+  link.href = ASSETS.details;
+  link.download = "دعوة-مستشفى-الواثق-الأهلي.png";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const exportInvitationImage = async (onToast) => {
+  onToast("جاري تجهيز صورة الدعوة");
+
+  try {
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
+    }
+
+    const facade = await loadCanvasImage(ASSETS.facade);
+    const canvas = document.createElement("canvas");
+    const width = 1080;
+    const height = 1920;
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext("2d");
+    ctx.direction = "rtl";
+    ctx.textBaseline = "top";
+
+    ctx.fillStyle = "#031827";
+    ctx.fillRect(0, 0, width, height);
+
+    drawCoverImage(ctx, facade, 0, 0, width, 690);
+
+    const imageOverlay = ctx.createLinearGradient(0, 0, 0, 760);
+    imageOverlay.addColorStop(0, "rgba(3, 24, 39, 0.08)");
+    imageOverlay.addColorStop(0.46, "rgba(3, 24, 39, 0.26)");
+    imageOverlay.addColorStop(1, "#031827");
+    ctx.fillStyle = imageOverlay;
+    ctx.fillRect(0, 0, width, 760);
+
+    const bodyGradient = ctx.createLinearGradient(0, 650, width, height);
+    bodyGradient.addColorStop(0, "rgba(6, 34, 58, 0.95)");
+    bodyGradient.addColorStop(0.48, "#05243a");
+    bodyGradient.addColorStop(1, "#031827");
+    ctx.fillStyle = bodyGradient;
+    ctx.fillRect(0, 610, width, height - 610);
+
+    ctx.strokeStyle = "rgba(246, 223, 159, 0.72)";
+    ctx.lineWidth = 5;
+    roundedRect(ctx, 54, 54, width - 108, height - 108, 34);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(18, 215, 232, 0.22)";
+    ctx.lineWidth = 2;
+    roundedRect(ctx, 82, 82, width - 164, height - 164, 24);
+    ctx.stroke();
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#f6df9f";
+    ctx.font = '700 36px "Cairo", "Tajawal", sans-serif';
+    ctx.fillText("دعوة رسمية", width / 2, 720);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = '800 70px "Cairo", "Tajawal", sans-serif';
+    ctx.fillText(EVENT.hospitalAr, width / 2, 790);
+
+    ctx.fillStyle = "#bff9ff";
+    ctx.font = '700 46px "Cairo", "Tajawal", sans-serif';
+    ctx.fillText(EVENT.titleAr, width / 2, 900);
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.78)";
+    ctx.font = '600 30px "Cairo", "Tajawal", sans-serif';
+    ctx.fillText(EVENT.titleEn, width / 2, 960);
+
+    ctx.strokeStyle = "rgba(228, 179, 92, 0.72)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(240, 1038);
+    ctx.lineTo(840, 1038);
+    ctx.stroke();
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = '500 37px "Tajawal", "Cairo", sans-serif';
+    wrapCanvasText(ctx, EVENT.inviteText, width / 2, 1090, 820, 58, 3);
+
+    const tileY = 1320;
+    const tileW = 280;
+    const tileH = 185;
+    const tileGap = 26;
+    const startX = (width - tileW * 3 - tileGap * 2) / 2;
+    const tiles = [
+      ["التاريخ", `${EVENT.day}\n${EVENT.date}`],
+      ["الوقت", EVENT.time],
+      ["المكان", "بغداد - الكرادة\nساحة الواثق"],
+    ];
+
+    tiles.forEach(([label, value], index) => {
+      const x = startX + index * (tileW + tileGap);
+      roundedRect(ctx, x, tileY, tileW, tileH, 22);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(18, 215, 232, 0.3)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = "#f6df9f";
+      ctx.font = '700 27px "Cairo", "Tajawal", sans-serif';
+      ctx.textAlign = "center";
+      ctx.fillText(label, x + tileW / 2, tileY + 28);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = '700 31px "Cairo", "Tajawal", sans-serif';
+      value.split("\n").forEach((line, lineIndex) => {
+        ctx.fillText(line, x + tileW / 2, tileY + 82 + lineIndex * 42);
+      });
+    });
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#bff9ff";
+    ctx.font = '700 34px "Cairo", "Tajawal", sans-serif';
+    ctx.fillText(EVENT.tagline, width / 2, 1588);
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.86)";
+    ctx.font = '600 30px "Cairo", "Tajawal", sans-serif';
+    ctx.fillText(EVENT.phones.join("  -  "), width / 2, 1662);
+
+    ctx.strokeStyle = "rgba(18, 215, 232, 0.8)";
+    ctx.lineWidth = 6;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(200, 1760);
+    ctx.lineTo(360, 1760);
+    ctx.lineTo(392, 1716);
+    ctx.lineTo(442, 1812);
+    ctx.lineTo(486, 1738);
+    ctx.lineTo(522, 1778);
+    ctx.lineTo(880, 1778);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(246, 223, 159, 0.72)";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(165, 1760);
+    ctx.lineTo(200, 1760);
+    ctx.moveTo(880, 1778);
+    ctx.lineTo(915, 1778);
+    ctx.stroke();
+
+    await saveCanvasAsPng(canvas, "دعوة-مستشفى-الواثق-الأهلي.png");
+    onToast("تم تصدير صورة الدعوة");
+  } catch (error) {
+    downloadFallbackPoster();
+    onToast("تم تحميل صورة الدعوة الأساسية");
+  }
+};
 
 const formatIcsDate = (date) =>
   date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
@@ -443,6 +680,10 @@ const ActionsSection = ({ onToast }) => {
       </div>
 
       <div className="action-grid">
+        <button className="primary-action wide export-action" onClick={() => exportInvitationImage(onToast)}>
+          {icons.download}
+          <span>تصدير صورة الدعوة</span>
+        </button>
         <button className="secondary-action wide" onClick={shareWhatsapp}>
           {icons.share}
           <span>مشاركة واتساب</span>
